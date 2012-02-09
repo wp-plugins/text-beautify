@@ -6,7 +6,7 @@ Donate link: http://rommelsantor.com/clog/
 Tags: grammar, text, case, punctuation, text beautify, aesthetics, sentence case, title case, curly quotes
 Requires at least: 2.0.2
 Tested up to: 3.3.1
-Stable tag: 3.3.1
+Stable tag: 0.1
 
 Cleans up posts and comments for sentence case or title case, fixes punctuation, makes quotes and commas curly, and allows custom enhancements.
 
