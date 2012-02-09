@@ -4,7 +4,7 @@
 Plugin Name: Text Beautify
 Plugin URI: http://rommelsantor.com/wp/sentence-case
 Description: Intelligently cleans up the case of blog post title/contents and/or comments to display in sentence case or title case, cleans up sloppy punctuation, makes quotes and commas curly, and allows other admin-customizable text enhancements. This is primarily targeted at the discerning blogger and designer type who is concerned with the aesthetics of the typewritten word.
-Version: 0.1
+Version: 0.2
 Author: Rommel Santor
 Author URI: http://rommelsantor.com
 License: GPL2 - http://www.gnu.org/licenses/gpl-2.0.html
@@ -91,7 +91,7 @@ class TextBeautifyPlugin {
       $terms = array_map('trim', explode("\n", $this->opts['custom_uc']));
       foreach ($terms as $term) {
         if ($term = trim($term))
-          $i_str = preg_replace('#(^|[^\w])' . preg_quote($term, '#') . '([^\w])#i', '$1' . $term . '$2', $i_str);
+          $i_str = preg_replace('#(^|[^\w])' . preg_quote($term, '#') . '([^\w]|$)#i', '$1' . $term . '$2', $i_str);
       }
     }
 
@@ -102,7 +102,7 @@ class TextBeautifyPlugin {
       foreach ($froms as $j => $from) {
         if ($from = trim($from)) {
           $to = $tos[$j];
-          $i_str = preg_replace('#(^|[^\w])' . preg_quote($from, '#') . '([^\w])#i', '$1' . $to . '$2', $i_str);
+          $i_str = preg_replace('#(^|[^\w])' . preg_quote($from, '#') . '([^\w]|$)#i', '$1' . $to . '$2', $i_str);
         }
       }
     }
@@ -142,14 +142,18 @@ class TextBeautifyPlugin {
    *
    */
   function process_body($i_str) {
+    $urls = array();
+    if (preg_match_all('#http://[^\s]+#', $i_str, $m))
+      $urls = $m[0];
+
     $pieces = array();
 
     // we must account for tags so we don't process strings contained within
-    if (preg_match_all('#<[^<>]+>#', $i_str, $m)) {
-      $splitter = '--' . strtolower(md5(rand())) . '--';
+    if (preg_match_all('#<[^<>]+>#s', $i_str, $m)) {
+      $splitter = '++' . strtolower(md5(rand())) . '++';
       $placeholder = '<' . strtolower(md5(rand())) . '>';
 
-      $i_str = preg_replace('#<[^<>]+>#', $splitter . $placeholder, $i_str);
+      $i_str = preg_replace('#<[^<>]+>#s', $splitter . $placeholder, $i_str);
       $pieces = explode($splitter, $i_str);
     }
     else
@@ -158,9 +162,9 @@ class TextBeautifyPlugin {
     foreach ($pieces as $i => $str) {
       $str = strtolower($str);
 
-      $str = preg_replace('/(\s+)i([,\s]+)/', '${1}I${2}', $str);
+      $str = preg_replace('/(\s+)i((\'(ve|m|d))?[,\s]+)/', '${1}I${2}', $str);
       $str = preg_replace('/(<[^<>]+>\s*)([a-z])/e', '"$1" . ucfirst("$2")', $str);
-      $str = preg_replace('/(^\s*|&#8230;"?\s+|[\x85\.!?]"?\s+|\s[^\w$]+)([a-z])/e', '"$1" . ucfirst("$2")', $str);
+      $str = preg_replace('/(^\s*|&#8230;"?\s+|[\x85\.!?]"?\s+)([a-z])/e', '"$1" . ucfirst("$2")', $str);
       $str = preg_replace('/(^\s*|\s+)([a-z])(\.\s+)/e', '"$1" . ucfirst("$2") . "$3"', $str);
       
       $str = $this->__apply_custom($str);
@@ -245,7 +249,14 @@ class TextBeautifyPlugin {
       }
     }
 
-    return implode('', $pieces);
+    $str = implode('', $pieces);
+
+    foreach ($urls as $url)
+      $str = preg_replace('#' . preg_quote($url, '#') . '#i', $url, $str);
+
+    $str = preg_replace('#!rawblock(\d+)!#', '!RAWBLOCK$1!', $str);
+
+    return $str;
   }
 
   /**
