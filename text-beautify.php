@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Text Beautify
-Plugin URI: http://rommelsantor.com/wp/sentence-case
+Plugin URI: http://rommelsantor.com/clog/2012/02/09/text-beautify-wordpress-plugin/
 Description: Intelligently cleans up the case of blog post title/contents and/or comments to display in sentence case or title case, cleans up sloppy punctuation, makes quotes and commas curly, and allows other admin-customizable text enhancements. This is primarily targeted at the discerning blogger and designer type who is concerned with the aesthetics of the typewritten word.
 Version: 0.2
 Author: Rommel Santor
