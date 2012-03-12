@@ -6,7 +6,7 @@ Donate link: http://rommelsantor.com/clog/
 Tags: grammar, text, case, punctuation, text beautify, aesthetics, sentence case, title case, curly quotes
 Requires at least: 2.0.2
 Tested up to: 3.3.1
-Stable tag: 0.2.1
+Stable tag: 0.3
 
 Cleans up posts and comments for sentence case or title case, fixes punctuation, makes quotes and commas curly, and allows custom enhancements.
 
@@ -21,6 +21,7 @@ The default functionality of the Text Beautify plugin would display that content
   Amazing! This is such an amazing story and I know my friend, Dr. Bobby would think so too... Don't you agree?!
 
 The full feature list is as follows:
+
 *   Use proper sentence casing instead of all capitals in comments and post body
 *   Capitalize each word in blog titles except for user-editable list of exceptions
 *   Remove user-editable list of excessive punctuation; by default: exclamation marks, question marks, asterisks, commas
@@ -51,6 +52,9 @@ Nope. You customizations will always take precedence over any of the default tex
 1. The same post but this time with Text Beautify enabled.
 
 == Changelog ==
+
+= 0.3 =
+* Corrected preg_match_all bug with invalid starting delimiter
 
 = 0.2.1 =
 * Minor fixes in plugin package

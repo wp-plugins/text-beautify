@@ -4,7 +4,7 @@
 Plugin Name: Text Beautify
 Plugin URI: http://rommelsantor.com/clog/2012/02/09/text-beautify-wordpress-plugin/
 Description: Intelligently cleans up the case of blog post title/contents and/or comments to display in sentence case or title case, cleans up sloppy punctuation, makes quotes and commas curly, and allows other admin-customizable text enhancements. This is primarily targeted at the discerning blogger and designer type who is concerned with the aesthetics of the typewritten word.
-Version: 0.2.1
+Version: 0.3
 Author: Rommel Santor
 Author URI: http://rommelsantor.com
 License: GPL2 - http://www.gnu.org/licenses/gpl-2.0.html
@@ -221,7 +221,7 @@ class TextBeautifyPlugin {
               $str);
         }
 
-        if (preg_match_all("#/'([^']+)'/", $str, $qm)) {
+        if (preg_match_all("/'([^']+)'/", $str, $qm)) {
           foreach ($qm[0] as $j => $s)
             $str = str_replace($s,
               '<span' . $style . '>&lsquo;</span>' .
