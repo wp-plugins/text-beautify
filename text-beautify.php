@@ -4,7 +4,7 @@
 Plugin Name: Text Beautify
 Plugin URI: http://rommelsantor.com/clog/2012/02/09/text-beautify-wordpress-plugin/
 Description: Intelligently cleans up the case of blog post title/contents and/or comments to display in sentence case or title case, cleans up sloppy punctuation, makes quotes and commas curly, and allows other admin-customizable text enhancements. This is primarily targeted at the discerning blogger and designer type who is concerned with the aesthetics of the typewritten word.
-Version: 0.3
+Version: 0.4
 Author: Rommel Santor
 Author URI: http://rommelsantor.com
 License: GPL2 - http://www.gnu.org/licenses/gpl-2.0.html
@@ -31,30 +31,46 @@ class TextBeautifyPlugin {
   /**
    *
    */
+  function __get_default_opts($i_key = null) {
+    $opts = array(
+      'enable_blog' => true,
+      'enable_title' => true,
+      'enable_comment' => true,
+      'enable_autocase' => false,
+
+      'title_lc' => "a\nan\nin\nthe\nif\nin\nof\nand\nat\nby\nfor\non\nor\nto\nvia\nvs\nv\nis",
+
+      'enable_repchars' => true,
+      'repchars' => '!?*,',
+
+      'enable_quot' => true,
+      'enable_apos' => true,
+      'enable_comma' => true,
+
+      'enable_custom_uc' => true,
+      'custom_uc' => "Dr.\nLos Angeles\nPHP\nHTML\nAPI\nURL\nJavaScript\njQuery\niPhone\niPad\n" .
+        "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\n" .
+        "January\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember\n" .
+        "Jan\nFeb\nMar\nApr\nMay\nJun\nJul\nAug\nSep\nOct\nNov\nDec\n",
+
+      'enable_custom_repl' => true,
+      'custom_repl_from' => array('Mon.'),
+      'custom_repl_to' => array('Monday'),
+    );
+
+    return $i_key ? @$opts[$i_key] : $opts;
+  }
+
+  /**
+   *
+   */
   function TextBeautifyPlugin() {
-    if (!$this->opts = get_option('textbeautify-opts')) {
-      $this->opts = array(
-        'enable_blog' => true,
-        'enable_title' => true,
-        'enable_comment' => true,
+    $this->was_installed = false;
 
-        'title_lc' => "a\nan\nin\nthe\nif\nin\nof\nand\nat\nby\nfor\non\nor\nto\nvia\nvs\nv\nis",
-
-        'enable_repchars' => true,
-        'repchars' => '!?*,',
-
-        'enable_quot' => true,
-        'enable_apos' => true,
-        'enable_comma' => true,
-
-        'enable_custom_uc' => true,
-        'custom_uc' => "Dr.\nLos Angeles\nPHP\nHTML\nAPI\nURL\nJavaScript\njQuery\niPhone\niPad\n",
-
-        'enable_custom_repl' => true,
-        'custom_repl_from' => array('Mon.'),
-        'custom_repl_to' => array('Monday'),
-      );
-    }
+    if (!$this->opts = get_option('textbeautify-opts'))
+      $this->opts = $this->__get_default_opts();
+    else
+      $this->was_installed = true;
 
     register_activation_hook(__FILE__, array($this, '__install'));
     register_deactivation_hook(__FILE__, array($this, '__uninstall'));
@@ -121,13 +137,17 @@ class TextBeautifyPlugin {
     if (!preg_match_all('/(^\s*|\s+|[\.!?]"?\s+|&ldquo;|&#8220;)([a-z][a-z]*)/i', $i_str, $m))
       return $i_str;
 
-    if ($this->opts['title_lc'])
-      $lower_terms = array_map('trim', explode("\n", strtolower($this->opts['title_lc'])));
+    if ($this->opts['title_lc']) {
+      if ($this->opts['enable_autocase'])
+        $lower_terms = array_map('trim', explode("\n", strtolower($this->opts['title_lc'])));
+      else
+        $lower_terms = array_map('trim', explode("\n", $this->opts['title_lc']));
+    }
 
     foreach ($m[0] as $i => $from) {
       $word = $m[2][$i];
 
-      if (!empty($lower_terms) && in_array($lower = strtolower($word), $lower_terms))
+      if (!empty($lower_terms) && in_array($lower = $this->opts['enable_autocase'] ? strtolower($word) : $word, $lower_terms))
         $to = str_replace($word, $lower, $from);
       else
         $to = str_replace($word, ucfirst($word), $from);
@@ -160,7 +180,10 @@ class TextBeautifyPlugin {
       $pieces = array($i_str);
 
     foreach ($pieces as $i => $str) {
-      $str = strtolower($str);
+      if ($this->opts['enable_autocase'])
+        $str = strtolower($str);
+      else
+        $str = $str;
 
       $str = preg_replace('/(\s+)i((\'(ve|m|d))?[,\s]+)/', '${1}I${2}', $str);
       $str = preg_replace('/(<[^<>]+>\s*)([a-z])/e', '"$1" . ucfirst("$2")', $str);
@@ -263,6 +286,17 @@ class TextBeautifyPlugin {
    *
    */
   function __install() {
+    if ($this->was_installed) {
+      $defterms = array_map('trim', explode("\n", $this->__get_default_opts('custom_uc')));
+      $terms = array_map('trim', explode("\n", $this->opts['custom_uc']));
+
+      foreach ($defterms as $term)
+        if (!in_array($term, $terms))
+          $terms[] = $term;
+
+      $this->opts['custom_uc'] = implode("\n", $terms);
+      update_option('textbeautify-opts', $this->opts);
+    }
   }
 
   /**
@@ -288,9 +322,11 @@ class TextBeautifyPlugin {
     foreach ($this->opts as $k => $_)
       $this->opts[$k] = $_POST[$k];
 
-    foreach ($_POST['repl_del'] as $i => $_) {
-      unset($this->opts['custom_repl_from'][$i]);
-      unset($this->opts['custom_repl_to'][$i]);
+    if (@$_POST['repl_del']) {
+      foreach ($_POST['repl_del'] as $i => $_) {
+        unset($this->opts['custom_repl_from'][$i]);
+        unset($this->opts['custom_repl_to'][$i]);
+      }
     }
 
     foreach ($this->opts['custom_repl_from'] as $i => $v) {
@@ -373,6 +409,18 @@ class TextBeautifyPlugin {
             </td>
             <td class="pl">
               <em>Allow comments to be processed by Text Beautify</em>
+            </td>
+          </tr>
+
+          <tr>
+            <td nowrap>
+              <label for="enable_autocase">Enable case manipulation:</label>
+            </td>
+            <td>
+              <input type="checkbox" id="enable_autocase" name="enable_autocase" value="1" <?php echo $vars['enable_autocase'] ? 'checked' : ''; ?>/>
+            </td>
+            <td class="pl">
+              <em>Allow Text Beautify to manipulate character case</em>
             </td>
           </tr>
         </table>
