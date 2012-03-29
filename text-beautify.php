@@ -132,27 +132,25 @@ class TextBeautifyPlugin {
   function process_title($i_str) {
     $i_str = $this->process_body($i_str);
 
-    $i_str = preg_replace('#(&ldquo;</span>)([a-z])#e', '"$1" . ucfirst("$2")', $i_str);
+    if ($this->opts['enable_autocase']) {
+      $i_str = preg_replace('#(&ldquo;</span>)([a-z])#e', '"$1" . ucfirst("$2")', $i_str);
 
-    if (!preg_match_all('/(^\s*|\s+|[\.!?]"?\s+|&ldquo;|&#8220;)([a-z][a-z]*)/i', $i_str, $m))
-      return $i_str;
+      if (!preg_match_all('/(^\s*|\s+|[\.!?]"?\s+|&ldquo;|&#8220;)([a-z][a-z]*)/i', $i_str, $m))
+        return $i_str;
 
-    if ($this->opts['title_lc']) {
-      if ($this->opts['enable_autocase'])
+      if ($this->opts['title_lc'])
         $lower_terms = array_map('trim', explode("\n", strtolower($this->opts['title_lc'])));
-      else
-        $lower_terms = array_map('trim', explode("\n", $this->opts['title_lc']));
-    }
 
-    foreach ($m[0] as $i => $from) {
-      $word = $m[2][$i];
+      foreach ($m[0] as $i => $from) {
+        $word = $m[2][$i];
 
-      if (!empty($lower_terms) && in_array($lower = $this->opts['enable_autocase'] ? strtolower($word) : $word, $lower_terms))
-        $to = str_replace($word, $lower, $from);
-      else
-        $to = str_replace($word, ucfirst($word), $from);
+        if (!empty($lower_terms) && in_array($lower = strtolower($word), $lower_terms))
+          $to = str_replace($word, $lower, $from);
+        else
+          $to = str_replace($word, ucfirst($word), $from);
 
-      $i_str = str_replace($from, $to, $i_str);
+        $i_str = str_replace($from, $to, $i_str);
+      }
     }
 
     return $this->__apply_custom($i_str);
@@ -180,15 +178,13 @@ class TextBeautifyPlugin {
       $pieces = array($i_str);
 
     foreach ($pieces as $i => $str) {
-      if ($this->opts['enable_autocase'])
+      if ($this->opts['enable_autocase']) {
         $str = strtolower($str);
-      else
-        $str = $str;
-
-      $str = preg_replace('/(\s+)i((\'(ve|m|d))?[,\s]+)/', '${1}I${2}', $str);
-      $str = preg_replace('/(<[^<>]+>\s*)([a-z])/e', '"$1" . ucfirst("$2")', $str);
-      $str = preg_replace('/(^\s*|&#8230;"?\s+|[\x85\.!?]"?\s+)([a-z])/e', '"$1" . ucfirst("$2")', $str);
-      $str = preg_replace('/(^\s*|\s+)([a-z])(\.\s+)/e', '"$1" . ucfirst("$2") . "$3"', $str);
+        $str = preg_replace('/(\s+)i((\'(ve|m|d))?[,\s]+)/', '${1}I${2}', $str);
+        $str = preg_replace('/(<[^<>]+>\s*)([a-z])/e', '"$1" . ucfirst("$2")', $str);
+        $str = preg_replace('/(^\s*|&#8230;"?\s+|[\x85\.!?]"?\s+)([a-z])/e', '"$1" . ucfirst("$2")', $str);
+        $str = preg_replace('/(^\s*|\s+)([a-z])(\.\s+)/e', '"$1" . ucfirst("$2") . "$3"', $str);
+      }
       
       $str = $this->__apply_custom($str);
 
