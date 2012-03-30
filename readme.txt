@@ -6,7 +6,7 @@ Donate link: http://rommelsantor.com/clog/
 Tags: grammar, text, case, punctuation, text beautify, aesthetics, sentence case, title case, curly quotes
 Requires at least: 2.0.2
 Tested up to: 3.3.1
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 
 Cleans up posts and comments for sentence case or title case, fixes punctuation, makes quotes and commas curly, and allows custom enhancements.
 
@@ -52,6 +52,9 @@ Nope. You customizations will always take precedence over any of the default tex
 1. The same post but this time with Text Beautify enabled.
 
 == Changelog ==
+
+= 0.4.2 =
+* Modified and corrected the way the new disabling of automatic case manipulation is processed; some automatic case adjustment was still executing
 
 = 0.4.1 =
 * Forcing new default options to be merged into existing options upon upgrade
