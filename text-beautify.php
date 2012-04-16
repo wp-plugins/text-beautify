@@ -4,7 +4,7 @@
 Plugin Name: Text Beautify
 Plugin URI: http://rommelsantor.com/clog/2012/02/09/text-beautify-wordpress-plugin/
 Description: Intelligently cleans up the case of blog post title/contents and/or comments to display in sentence case or title case, cleans up sloppy punctuation, makes quotes and commas curly, and allows other admin-customizable text enhancements. This is primarily targeted at the discerning blogger and designer type who is concerned with the aesthetics of the typewritten word.
-Version: 0.4.2
+Version: 0.5
 Author: Rommel Santor
 Author URI: http://rommelsantor.com
 License: GPL2 - http://www.gnu.org/licenses/gpl-2.0.html
@@ -164,12 +164,21 @@ class TextBeautifyPlugin {
     if (preg_match_all('#http://[^\s]+#', $i_str, $m))
       $urls = $m[0];
 
+    $tags = array();
+    if (preg_match_all('#\[[^]]+\]#', $i_str, $m)) {
+      foreach ($m[0] as $orig) {
+        $tmp = '<!--' . md5(rand()) . '-->';
+        $i_str = str_replace($orig, $tmp, $i_str);
+        $tags[$tmp] = $orig;
+      }
+    }
+
     $pieces = array();
 
     // we must account for tags so we don't process strings contained within
     if (preg_match_all('#<[^<>]+>#s', $i_str, $m)) {
-      $splitter = '++' . strtolower(md5(rand())) . '++';
-      $placeholder = '<' . strtolower(md5(rand())) . '>';
+      $splitter = '<!--++' . strtolower(md5(rand())) . '++-->';
+      $placeholder = '<!--' . strtolower(md5(rand())) . '-->';
 
       $i_str = preg_replace('#<[^<>]+>#s', $splitter . $placeholder, $i_str);
       $pieces = explode($splitter, $i_str);
@@ -198,7 +207,7 @@ class TextBeautifyPlugin {
       }
 
       if ($this->opts['enable_comma'])
-        $comma = md5(rand());
+        $comma = '<!--' . md5(rand()) . '-->';
       else
         $comma = ',';
 
@@ -272,6 +281,9 @@ class TextBeautifyPlugin {
 
     foreach ($urls as $url)
       $str = preg_replace('#' . preg_quote($url, '#') . '#i', $url, $str);
+
+    foreach ($tags as $tmp => $orig)
+      $str = preg_replace('#' . preg_quote($tmp, '#') . '#i', $orig, $str);
 
     $str = preg_replace('#!rawblock(\d+)!#', '!RAWBLOCK$1!', $str);
 
