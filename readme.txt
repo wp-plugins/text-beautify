@@ -5,8 +5,8 @@ Contributors: rsantor
 Donate link: http://rommelsantor.com/clog/
 Tags: grammar, text, case, punctuation, text beautify, aesthetics, sentence case, title case, curly quotes
 Requires at least: 2.0.2
-Tested up to: 3.3.1
-Stable tag: 0.5
+Tested up to: 3.5.1
+Stable tag: 0.6
 
 Cleans up posts and comments for sentence case or title case, fixes punctuation, makes quotes and commas curly, and allows custom enhancements.
 
@@ -52,6 +52,9 @@ Nope. You customizations will always take precedence over any of the default tex
 1. The same post but this time with Text Beautify enabled.
 
 == Changelog ==
+
+= 0.6 =
+* Fixed significant bug wherein some beautified text was getting mangled or stripped. It would only happen on occasional page loads. Thanks to James Burnby who alerted me to this issue.
 
 = 0.5 =
 * Plugin will now automatically leave any text contained within square brackets untouched. Example: if [some plugin="CODE"] is in your body of text, it will be passed through as-is. This is because it's very common for other WordPress plugins to use such special bracket tags to do their own special processing.

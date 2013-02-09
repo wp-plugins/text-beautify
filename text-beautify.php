@@ -4,7 +4,7 @@
 Plugin Name: Text Beautify
 Plugin URI: http://rommelsantor.com/clog/2012/02/09/text-beautify-wordpress-plugin/
 Description: Intelligently cleans up the case of blog post title/contents and/or comments to display in sentence case or title case, cleans up sloppy punctuation, makes quotes and commas curly, and allows other admin-customizable text enhancements. This is primarily targeted at the discerning blogger and designer type who is concerned with the aesthetics of the typewritten word.
-Version: 0.5
+Version: 0.6
 Author: Rommel Santor
 Author URI: http://rommelsantor.com
 License: GPL2 - http://www.gnu.org/licenses/gpl-2.0.html
@@ -167,7 +167,7 @@ class TextBeautifyPlugin {
     $tags = array();
     if (preg_match_all('#\[[^]]+\]#', $i_str, $m)) {
       foreach ($m[0] as $orig) {
-        $tmp = '<!--' . md5(rand()) . '-->';
+        $tmp = '<!--X' . preg_replace('#\W#', '', crc32(rand())) . 'X-->';
         $i_str = str_replace($orig, $tmp, $i_str);
         $tags[$tmp] = $orig;
       }
@@ -175,16 +175,18 @@ class TextBeautifyPlugin {
 
     $pieces = array();
 
-    // we must account for tags so we don't process strings contained within
-    if (preg_match_all('#<[^<>]+>#s', $i_str, $m)) {
-      $splitter = '<!--++' . strtolower(md5(rand())) . '++-->';
-      $placeholder = '<!--' . strtolower(md5(rand())) . '-->';
+    // we must account for meta data so we don't process chars contained within
+    if (preg_match_all('#<(?!!--)[^<>]+>#s', $i_str, $m)) {
+      $splitter = '<!--++X' . preg_replace('#\W#', '', crc32(rand())) . 'X++-->';
+      $placeholder = '<!--X' . preg_replace('#\W#', '', crc32(rand())) . 'X-->';
 
-      $i_str = preg_replace('#<[^<>]+>#s', $splitter . $placeholder, $i_str);
+      $i_str = preg_replace('#<(?!!--)[^<>]+>#s', $splitter . $placeholder, $i_str);
       $pieces = explode($splitter, $i_str);
     }
     else
       $pieces = array($i_str);
+
+    $comma = '<!--X' . preg_replace('#\W#', '', crc32(rand())) . 'X-->';
 
     foreach ($pieces as $i => $str) {
       if ($this->opts['enable_autocase']) {
@@ -205,11 +207,6 @@ class TextBeautifyPlugin {
           $str = preg_replace('#(' . preg_quote($ch, '#') . '){2,}#', '$1', $str);
         }
       }
-
-      if ($this->opts['enable_comma'])
-        $comma = '<!--' . md5(rand()) . '-->';
-      else
-        $comma = ',';
 
       $style = ' style="font-family:georgia' . $comma . 'serif;"';
 
@@ -261,10 +258,10 @@ class TextBeautifyPlugin {
         $str = str_replace("'", '<span' . $style . '>&rsquo;</span>', $str);
       }
 
-      if ($this->opts['enable_comma']) {
+      if ($this->opts['enable_comma'])
         $str = str_replace(',', '<span style="font-family:georgia,serif;">&sbquo;</span>', $str);
-        $str = str_replace($comma, ',', $str);
-      }
+     
+      $str = str_replace($comma, ',', $str);
 
       $pieces[$i] = $str;
     }
